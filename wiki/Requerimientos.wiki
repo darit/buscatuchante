@@ -1,5 +1,5 @@
 #summary Detalles del proyecto.
-#labels Phase-Requirements
+#labels Phase-Requirements,Featured
 
 = Detalles =
 
@@ -24,8 +24,7 @@ El proyecto deberá incluir los siguientes elementos en la interfaz de Flex como
    # Un control (Slider) que permita elegir entre el siguiente rango de precios
                 I. Límite inferior 300,000 (trescientos mil) pesos
                 II. Límite superior 5000,000 (5 millones) pesos
-  * Los resultados de la búsqueda deberán mostrarse en el mapa mediante pins o markers. Al hacer click en cada uno de estos pins, se deberá mostrar la información del
-departamento.
+  * Los resultados de la búsqueda deberán mostrarse en el mapa mediante pins o markers. Al hacer click en cada uno de estos pins, se deberá mostrar la información del departamento.
   * La búsqueda se realizará a partir del centro del mapa.
 ----
 *PHP*
