@@ -1,0 +1,53 @@
+#summary Detalles del proyecto.
+#labels Phase-Requirements
+
+= Detalles =
+
+Proyecto final Programación de Interfaces
+El proyecto consiste en crear una aplicación en Flex y PHP que permita buscar
+departamentos dentro de un radio de distancia en km.
+El proyecto se realizará por los equipos previamente designados.
+== Requerimientos ==
+
+El proyecto deberá incluir los siguientes elementos en la interfaz de Flex como mínimo:
+
+*Flex*
+
+  * Un mapa que muestre los resultados de la búsqueda
+  * El mapa deberá presentar los controles necesarios para navegar por él
+  * Los siguientes controles para realizar las búsqueda:
+   # Un control (Combo) que permita elegir el número de recámaras
+   # Un control (Combo) que permita elegir el número de baños
+   # Un control (Combo) que permita elegir el radio de la distancia (en km) de búsqueda con las siguientes opciones:
+           5, 10, 15 y 20 km
+   # Un control (Combo o radio) que permita elegir si se busca rentar o comprar
+   # Un control (Slider) que permita elegir entre el siguiente rango de precios
+                I. Límite inferior 300,000 (trescientos mil) pesos
+                II. Límite superior 5000,000 (5 millones) pesos
+  * Los resultados de la búsqueda deberán mostrarse en el mapa mediante pins o markers. Al hacer click en cada uno de estos pins, se deberá mostrar la información del
+departamento.
+  * La búsqueda se realizará a partir del centro del mapa.
+----
+*PHP*
+  * Los archivos de PHP deberán seguir la estructura que hasta ahora hemos visto en
+clase
+  * La comunicación entre Flex y PHP deberán realizarse mediante JSON
+  * Se deberá utilizar el framework de Zend tanto para la conexión de la base de datos
+como para la codificación de los resultados en JSON
+MySQL
+  # Se deberá crear una base de datos especifica para el proyecto
+  # Se deberá crear un usuario específico para la base de datos del proyecto
+  # La estructura, el número de tablas y sus campos son libres
+
+_Parte 2 Entregables_
+
+Cada equipo entregará un cd-com con:
+  # El proyecto de Flex
+  # Los archivos de PHP creados
+  # La base de datos como un archivo con extensión sql.
+  # Un manual de usuario de la aplicación
+  # fecha de entrega es el lunes 30 de noviembre de 2009 sin excepciones.
+
+Cada equipo es libre de agregar la funcionalidad que deseen a los requerimientos, los
+puntos extras obtenidos podrán ser aplicados a las calificaciones de los exámenes.
+¡Suerte!
