@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" xmlns:ns1="com.google.maps.*" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#FFFFFF, #232323]" xmlns:ns2="com.google.maps.controls.*">
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" xmlns:ns1="com.google.maps.*" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#FFFFFF, #000000]" xmlns:ns2="com.google.maps.controls.*"  creationComplete="cargaDepas()">
 
      
 <mx:Script>
   <![CDATA[
+  	import com.google.maps.InfoWindowOptions;
       import com.google.maps.MapMouseEvent;
       import mx.controls.Alert;
   import com.google.maps.LatLng;
@@ -13,10 +14,23 @@
   import com.google.maps.MapType;
   import com.google.maps.View;
   import com.google.maps.geom.Attitude;
+  import com.google.maps.overlays.Marker;
+import com.google.maps.overlays.MarkerOptions;
+  import com.google.maps.MapUtil;
+  import mx.events.CollectionEvent;
+  import com.google.maps.styles.FillStyle; 
+import com.google.maps.styles.StrokeStyle; 
+		import mx.collections.ArrayCollection;
+		import mx.rpc.events.FaultEvent;
+		import mx.rpc.events.ResultEvent;
+		import mx.controls.Alert;
+		import com.adobe.serialization.json.JSON;
+		
   
   import com.google.maps.overlays.*;
   
-
+		[Bindable]
+		private var dp:ArrayCollection;
   
   import com.google.maps.controls.MapTypeControl;
   import com.google.maps.controls.NavigationControl;
@@ -28,7 +42,7 @@
 
   private function onMapPreinitialize(event:MapEvent):void {
     var myMapOptions:MapOptions = new MapOptions();
-    myMapOptions.zoom = 12;
+    myMapOptions.zoom = 11;
     myMapOptions.center = new LatLng(19.432485733472618,-99.1331761026383);
     myMapOptions.mapType = MapType.NORMAL_MAP_TYPE;
     myMapOptions.viewMode = View.VIEWMODE_2D;
@@ -39,6 +53,7 @@
   }
   
   private function onMapReady(event:MapEvent):void {
+  	var coords:Object = new Object();
       map.addControl(new MapTypeControl());
       map.addControl(new NavigationControl());
       
@@ -51,27 +66,117 @@
       
       map.addOverlay(marker);
       
-      lblLat.text = map.getCenter().lat().toString();
-      lblLng.text = map.getCenter().lng().toString();
+      coords.lat = map.getCenter().lat().toString();
+      coords.lng = map.getCenter().lng().toString();
     
-    
+      busqueda();
   }
   
   private function onDrag(event:Event):void
   {
           
-          lblLat.text = marker.getLatLng().lat().toString();
-          lblLng.text = marker.getLatLng().lng().toString();
-          if (event.type == MapMouseEvent.DRAG_END) map.setCenter(marker.getLatLng());
+          if (event.type == MapMouseEvent.DRAG_END) { 
+          map.setCenter(marker.getLatLng())
+          busqueda();
+          }
   }
     
-  private function onCenter():void
-  {
-      map.setCenter(marker.getLatLng());
-  }
+
   
+  private function cargaDepas():void
+		{ 
+			
+			cargaDepartamentosService.send();
+			busqueda();
+		}
+		
+  private function onCargaResult(event:ResultEvent):void
+		{
+			//Los arreglos asociativos de PHP, al codificarse en Json y decodificarse en Actionscript, son interpretados como objetos			
+			//En este caso, al tener un arreglo de arreglos asociativos en PHP, la respuesta viene como un arreglo de objetos. Ver el archivo cargaDepartamentos.php
+			var respuesta:Array = JSON.decode(event.result.toString()) as Array;
+			dp = new ArrayCollection(respuesta);
+			
+			
+		}
+  
+  private function onFault(event:FaultEvent):void
+		{
+			mx.controls.Alert.show(event.message.toString());
+		}
+		
+		
+
+
+  public function busqueda():void
+  		{
+  			var cuantos:Number = dp.length; 
+  			var i:int;
+  			map.clearOverlays();
+  			marker = new Marker(map.getCenter());
+  			marker.setOptions(new MarkerOptions({draggable: true}));
+      
+      
+      marker.addEventListener(MapMouseEvent.DRAG_STEP,onDrag);
+      marker.addEventListener(MapMouseEvent.DRAG_END,onDrag);
+  			map.addOverlay(marker);
+  			for (i = 0; i < cuantos; i++) { 
+    var newMarkerOptions:MarkerOptions = new MarkerOptions({}); 
+    var strokeStyle:StrokeStyle = new StrokeStyle(); 
+    strokeStyle.thickness = 1; 
+    newMarkerOptions.strokeStyle = strokeStyle; 
+    newMarkerOptions.hasShadow = true;
+    newMarkerOptions.draggable = false; 
+    newMarkerOptions.radius  = 6; 
+    
+   // newMarkerOptions.tooltip =  dp[i].descrip;
+    if ((((Math.acos(Math.sin(marker.getLatLng().lat().valueOf() * Math.PI / 180) * Math.sin(dp[i].lat * Math.PI / 180) + Math.cos(marker.getLatLng().lat().valueOf() * Math.PI / 180) * Math.cos(dp[i].lat * Math.PI / 180) * Math.cos((marker.getLatLng().lng().valueOf() - dp[i].long) * Math.PI / 180)) * 180 / Math.PI) * 60 * 1.1515) * 1.609344) <= distancia.value && dp[i].recamaras == recamaras.value && dp[i].banos == banos.value && dp[i].compra == compra.value && (Number(dp[i].precio) >= Number(precio.values[0]) && Number(dp[i].precio) <= Number(precio.values[1]))) {
+    	
+		    var nm:Marker = new Marker(new LatLng(dp[i].lat,dp[i].long), newMarkerOptions);
+		    var latling:LatLng = new LatLng(dp[i].lat,dp[i].long);
+   			map.addOverlay(createMarker(latling, dp[i].direccion, dp[i].descrip, dp[i].telefono, dp[i].superficie));
+   			
+}
+               	
+    } 
+    
+    // Add Marker to ArrayCollection 
+    //dp[i]["Marker"] = nm; 
+  } 
+  		
+		
+		private function createMarker(latlng:LatLng, direccion:String, contenido:String, telefono:String, superficie:int):Marker {
+  var marker:Marker = new Marker(latlng, new MarkerOptions({ 
+         fillStyle: new FillStyle({ 
+            alpha: 0.75, 
+            color: 0x00ffff 
+         }), 
+         //si queremos que tenga sombra 
+         hasShadow: true, 
+         //el radio del marcador 
+         radius: 6, 
+         //el color, opacidad y grosor de la l’nea 
+         strokeStyle: new StrokeStyle({ 
+            alpha: 0.75, 
+            color: 0x0000ff, 
+            thickness: 1 
+         }) 
+      }));
+  
+  marker.addEventListener(MapMouseEvent.CLICK, function(e:MapMouseEvent):void {
+    direccion = "<b>"+ direccion +"</b>";
+    var contenido2:String = contenido + "<br><b>Superficie: </b>"+ superficie +" m2<br><br>Tel. <u>" + telefono + "</u>"; 
+    map.openInfoWindow(latlng, new InfoWindowOptions({titleHTML: direccion, contentHTML: contenido2}));
+  });
+  return marker;
+}
   ]]>
 </mx:Script>
+
+
+	<mx:HTTPService id="cargaDepartamentosService" url="cargaDepartamentos.php" result="onCargaResult(event)" fault="onFault(event)" method="GET" showBusyCursor="true"/>
+	
+
 	<mx:Image y="10" source="../logo.png" width="507" height="128" autoLoad="true" scaleContent="false" horizontalCenter="-249"/>
 	<ns2:PositionControl x="779" y="99"/>
 	<mx:Panel layout="absolute" id="panprincipal" width="537" height="612" verticalCenter="68" horizontalCenter="-234">
@@ -84,13 +189,13 @@
 	    
 	</mx:Panel>
 	<mx:Panel width="459" height="612" layout="absolute" horizontalCenter="272" verticalCenter="68">
-		<mx:Form id="Forma1" right="10" left="10" bottom="2" top="10">
+		<mx:Form id="Forma1" right="10" left="10" bottom="261" top="10">
 			<mx:FormHeading label="Como deseas tu hogar?" textAlign="left" width="255"/>
 			<mx:FormItem>
 				<mx:Spacer/>
 			</mx:FormItem>
 			<mx:FormItem label="Recamaras" id="selectRecamaras">
-				<mx:ComboBox selectedIndex="1">
+				<mx:ComboBox selectedIndex="1" change="busqueda()" id="recamaras">
 					<mx:ArrayCollection>
          				<mx:String>1</mx:String>
         				<mx:String>2</mx:String>
@@ -100,28 +205,27 @@
 				</mx:ComboBox>
 			</mx:FormItem>
 			<mx:FormItem label="Baños" id="selectBanos">
-				<mx:ComboBox selectedIndex="0">
+				<mx:ComboBox selectedIndex="0" change="busqueda()" id="banos">
 					<mx:ArrayCollection>
 					 				<mx:String>1</mx:String>
 									<mx:String>2</mx:String>
 						</mx:ArrayCollection>
 				</mx:ComboBox>
 			</mx:FormItem>
-			<mx:FormItem label="En un radio de" height="44" width="271">
-				<mx:HSlider showDataTip="false" allowTrackClick="true" id="distancia" minimum="5" maximum="20" snapInterval="5" enabled="true" liveDragging="false" width="171" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#FFFFFF, #999999]" labels="['5km', '10km', '15km', '20km']"/>
+			<mx:FormItem label="En un radio de" height="44" width="287">
+				<mx:HSlider showDataTip="false" allowTrackClick="true" id="distancia" minimum="5" maximum="20" snapInterval="5" enabled="true" liveDragging="false" width="171" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#FFFFFF, #999999]" labels="['5km', '10km', '15km', '20km']" change="busqueda()"/>
 			</mx:FormItem>
 			<mx:FormItem width="270" height="44" label="Tipo">
-				<mx:HSlider minimum="0" maximum="1" allowTrackClick="true" id="compra" snapInterval="1" showDataTip="false" height="27" width="119" labels="['Compra', 'Renta']" fillAlphas="[1.0, 1.0]" fillColors="[#FFFFFF, #B6B6B6]"/>
+				<mx:HSlider minimum="0" maximum="1" allowTrackClick="true" id="compra" snapInterval="1" showDataTip="false" height="27" width="119" labels="['Compra', 'Renta']" fillAlphas="[1.0, 1.0]" fillColors="[#FFFFFF, #B6B6B6]" change="busqueda()"/>
 			</mx:FormItem>
 			<mx:FormItem label="Rango de Precio" height="44">
-				<mx:HSlider thumbCount="2" id="precio" allowTrackClick="false" minimum="300000" maximum="5000000" snapInterval="1" labels="['$300k', '$5M']"/>
+				<mx:HSlider thumbCount="2" id="precio" allowTrackClick="false" values="[300000, 5000000]" minimum="300000" maximum="5000000" snapInterval="1" labels="['$300k', '$5M']" change="busqueda()"/>
 			</mx:FormItem>
 		</mx:Form>
 		<mx:HBox right="0" bottom="0" width="439">
-			<mx:Label width="150" id="lblLat" selectable="true" visible="false"/>
-			<mx:Label width="150" id="lblLng" selectable="true" visible="false"/>
-		
+			<mx:Label width="420" id="copy" text="Daniel Rodríguez Guerrero" selectable="false" textAlign="right"/>
 		</mx:HBox>
+		
 	</mx:Panel>
 	
 </mx:Application>
