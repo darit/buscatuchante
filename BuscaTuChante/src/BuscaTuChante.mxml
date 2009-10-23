@@ -4,6 +4,7 @@
      
 <mx:Script>
   <![CDATA[
+  	import mx.charts.renderers.CircleItemRenderer;
   	import com.google.maps.InfoWindowOptions;
       import com.google.maps.MapMouseEvent;
       import mx.controls.Alert;
@@ -25,8 +26,7 @@ import com.google.maps.styles.StrokeStyle;
 		import mx.rpc.events.ResultEvent;
 		import mx.controls.Alert;
 		import com.adobe.serialization.json.JSON;
-		
-  
+		 
   import com.google.maps.overlays.*;
   
 		[Bindable]
@@ -56,15 +56,10 @@ import com.google.maps.styles.StrokeStyle;
   	var coords:Object = new Object();
       map.addControl(new MapTypeControl());
       map.addControl(new NavigationControl());
+
+      map.addEventListener(MapMouseEvent.DRAG_STEP,onDrag);
+      map.addEventListener(MapMouseEvent.DRAG_END,onDrag);
       
-      marker = new Marker(map.getCenter());   
-      marker.setOptions(new MarkerOptions({draggable: true}));
-      
-      
-      marker.addEventListener(MapMouseEvent.DRAG_STEP,onDrag);
-      marker.addEventListener(MapMouseEvent.DRAG_END,onDrag);
-      
-      map.addOverlay(marker);
       
       coords.lat = map.getCenter().lat().toString();
       coords.lng = map.getCenter().lng().toString();
@@ -76,7 +71,6 @@ import com.google.maps.styles.StrokeStyle;
   {
           
           if (event.type == MapMouseEvent.DRAG_END) { 
-          map.setCenter(marker.getLatLng())
           busqueda();
           }
   }
@@ -92,8 +86,6 @@ import com.google.maps.styles.StrokeStyle;
 		
   private function onCargaResult(event:ResultEvent):void
 		{
-			//Los arreglos asociativos de PHP, al codificarse en Json y decodificarse en Actionscript, son interpretados como objetos			
-			//En este caso, al tener un arreglo de arreglos asociativos en PHP, la respuesta viene como un arreglo de objetos. Ver el archivo cargaDepartamentos.php
 			var respuesta:Array = JSON.decode(event.result.toString()) as Array;
 			dp = new ArrayCollection(respuesta);
 			
@@ -112,14 +104,29 @@ import com.google.maps.styles.StrokeStyle;
   		{
   			var cuantos:Number = dp.length; 
   			var i:int;
+  			var polyline1:Polyline = new Polyline([
+      new LatLng(map.getCenter().lat(),map.getCenter().lng()+.0025),
+      new LatLng(map.getCenter().lat(),map.getCenter().lng()-.0025)
+      ], new PolylineOptions({ strokeStyle: new StrokeStyle({
+            color: 0x000000,
+            thickness: 2,
+            alpha: 0.7})
+  }));
+  			var polyline2:Polyline = new Polyline([
+      new LatLng(map.getCenter().lat()-.0025,map.getCenter().lng()),
+      new LatLng(map.getCenter().lat()+.0025,map.getCenter().lng())
+      ], new PolylineOptions({ strokeStyle: new StrokeStyle({
+            color: 0x000000,
+            thickness: 2,
+            alpha: 0.7})
+  }));
+        
+  
+
   			map.clearOverlays();
-  			marker = new Marker(map.getCenter());
-  			marker.setOptions(new MarkerOptions({draggable: true}));
-      
-      
-      marker.addEventListener(MapMouseEvent.DRAG_STEP,onDrag);
-      marker.addEventListener(MapMouseEvent.DRAG_END,onDrag);
-  			map.addOverlay(marker);
+  			
+ map.addOverlay(polyline1);
+ map.addOverlay(polyline2);
   			for (i = 0; i < cuantos; i++) { 
     var newMarkerOptions:MarkerOptions = new MarkerOptions({}); 
     var strokeStyle:StrokeStyle = new StrokeStyle(); 
@@ -129,8 +136,7 @@ import com.google.maps.styles.StrokeStyle;
     newMarkerOptions.draggable = false; 
     newMarkerOptions.radius  = 6; 
     
-   // newMarkerOptions.tooltip =  dp[i].descrip;
-    if ((((Math.acos(Math.sin(marker.getLatLng().lat().valueOf() * Math.PI / 180) * Math.sin(dp[i].lat * Math.PI / 180) + Math.cos(marker.getLatLng().lat().valueOf() * Math.PI / 180) * Math.cos(dp[i].lat * Math.PI / 180) * Math.cos((marker.getLatLng().lng().valueOf() - dp[i].long) * Math.PI / 180)) * 180 / Math.PI) * 60 * 1.1515) * 1.609344) <= distancia.value && dp[i].recamaras == recamaras.value && dp[i].banos == banos.value && dp[i].compra == compra.value && (Number(dp[i].precio) >= Number(precio.values[0]) && Number(dp[i].precio) <= Number(precio.values[1]))) {
+    if ((((Math.acos(Math.sin(map.getCenter().lat().valueOf() * Math.PI / 180) * Math.sin(dp[i].lat * Math.PI / 180) + Math.cos(map.getCenter().lat().valueOf() * Math.PI / 180) * Math.cos(dp[i].lat * Math.PI / 180) * Math.cos((map.getCenter().lng().valueOf() - dp[i].long) * Math.PI / 180)) * 180 / Math.PI) * 60 * 1.1515) * 1.609344) <= distancia.value && dp[i].recamaras == recamaras.value && dp[i].banos == banos.value && dp[i].compra == compra.value && (Number(dp[i].precio) >= Number(precio.values[0]) && Number(dp[i].precio) <= Number(precio.values[1]))) {
     	
 		    var nm:Marker = new Marker(new LatLng(dp[i].lat,dp[i].long), newMarkerOptions);
 		    var latling:LatLng = new LatLng(dp[i].lat,dp[i].long);
@@ -139,9 +145,7 @@ import com.google.maps.styles.StrokeStyle;
 }
                	
     } 
-    
-    // Add Marker to ArrayCollection 
-    //dp[i]["Marker"] = nm; 
+   
   } 
   		
 		
@@ -151,11 +155,8 @@ import com.google.maps.styles.StrokeStyle;
             alpha: 0.75, 
             color: 0x00ffff 
          }), 
-         //si queremos que tenga sombra 
          hasShadow: true, 
-         //el radio del marcador 
          radius: 6, 
-         //el color, opacidad y grosor de la l’nea 
          strokeStyle: new StrokeStyle({ 
             alpha: 0.75, 
             color: 0x0000ff, 
@@ -170,6 +171,9 @@ import com.google.maps.styles.StrokeStyle;
   });
   return marker;
 }
+
+
+
   ]]>
 </mx:Script>
 
