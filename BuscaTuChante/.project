@@ -21,5 +21,15 @@
 			<type>2</type>
 			<location>C:/xampp/htdocs/BuscaTuChante-debug</location>
 		</link>
+		<link>
+			<name>[source path] Buscatuchante</name>
+			<type>2</type>
+			<location>C:/Users/Hunter.xbox1/Zend/workspaces/DefaultWorkspace7/Buscatuchante</location>
+		</link>
+		<link>
+			<name>bin-release</name>
+			<type>2</type>
+			<location>C:/xampp/htdocs/BuscaTuChante</location>
+		</link>
 	</linkedResources>
 </projectDescription>
