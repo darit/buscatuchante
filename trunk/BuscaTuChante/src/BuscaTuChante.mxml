@@ -76,12 +76,12 @@ import com.google.maps.styles.StrokeStyle;
   }
     
 
-  
+   
   private function cargaDepas():void
 		{ 
 			
 			cargaDepartamentosService.send();
-			busqueda();
+			
 		}
 		
   private function onCargaResult(event:ResultEvent):void
@@ -102,7 +102,7 @@ import com.google.maps.styles.StrokeStyle;
 
   public function busqueda():void
   		{
-  			var cuantos:Number = dp.length; 
+  			
   			var i:int;
   			var polyline1:Polyline = new Polyline([
       new LatLng(map.getCenter().lat(),map.getCenter().lng()+.0025),
@@ -120,7 +120,7 @@ import com.google.maps.styles.StrokeStyle;
             thickness: 2,
             alpha: 0.7})
   }));
-        
+        var cuantos:int = dp.length; 
   
 
   			map.clearOverlays();
@@ -150,10 +150,11 @@ import com.google.maps.styles.StrokeStyle;
   		
 		
 		private function createMarker(latlng:LatLng, direccion:String, contenido:String, telefono:String, superficie:int):Marker {
+			
   var marker:Marker = new Marker(latlng, new MarkerOptions({ 
          fillStyle: new FillStyle({ 
             alpha: 0.75, 
-            color: 0x00ffff 
+            color: selectorcolor.selectedColor  
          }), 
          hasShadow: true, 
          radius: 6, 
@@ -227,8 +228,9 @@ import com.google.maps.styles.StrokeStyle;
 			</mx:FormItem>
 		</mx:Form>
 		<mx:HBox right="0" bottom="0" width="439">
-			<mx:Label width="420" id="copy" text="Daniel Rodríguez Guerrero" selectable="false" textAlign="right"/>
+			<mx:Label width="420" id="copy" text="Daniel Rodríguez Guerrero" selectable="false" textAlign="right" height="24"/>
 		</mx:HBox>
+		<mx:ColorPicker selectedColor="#00FFFF" id="selectorcolor" change="busqueda()" enabled="true" y="531"/>
 		
 	</mx:Panel>
 	
